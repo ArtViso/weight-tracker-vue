@@ -36,16 +36,16 @@
                 <table class="min-w-full text-center">
                   <thead class="bg-white border-b">
                   <tr>
-                    <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4">
+                    <th scope="col" class="table-head">
                       #
                     </th>
-                    <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4">
+                    <th scope="col" class="table-head">
                       Weight
                     </th>
-                    <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4">
+                    <th scope="col" class="table-head">
                       Gender
                     </th>
-                    <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4">
+                    <th scope="col" class="table-head">
                       Date
                     </th>
                   </tr>
@@ -53,14 +53,16 @@
                   <tbody>
                   <tr v-for="(weight, index) in weights"
                       class="bg-white border-b transition duration-300 ease-in-out hover:bg-blue-200">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ index + 1 }}</td>
-                    <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
+                    <td class="table-body">
+                      {{ index + 1 }}
+                    </td>
+                    <td class="table-body">
                       {{ weight.weight }} kg
                     </td>
-                    <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
+                    <td class="table-body">
                       M&W
                     </td>
-                    <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
+                    <td class="table-body">
                       {{ new Date(weight.date).toLocaleDateString() }}
                     </td>
                   </tr>
@@ -88,7 +90,7 @@ const currentWeight = computed(() => {
 })
 
 const addWeight = () => {
-  if(!weightInput.value){
+  if (!weightInput.value) {
     return;
   }
   weights.value.push({
