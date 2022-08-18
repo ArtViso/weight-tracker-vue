@@ -10,10 +10,13 @@
       <small class="text-2xl font-bold">Current Weight (kg)</small>
     </div>
 
-    <form class="mb-5 text-center" @submit.prevent="addWeight">
+    <form class="flex mb-5 text-center" @submit.prevent="addWeight">
       <input
-          class="mr-[10px] shadow appearance-none border rounded w-[85%] py-2 px-3 text-gray-700 transition-all hover:ring-1 hover:border-blue-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:border-blue-500"
+          class="mr-[10px] shadow appearance-none border rounded w-[45%] py-2 px-3 text-gray-700 transition-all hover:ring-1 hover:border-blue-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:border-blue-500"
           type="number" step="0.1" v-model="weightInput"/>
+      <input
+          class="mr-[10px] shadow appearance-none border rounded w-[45%] py-2 px-3 text-gray-700 transition-all hover:ring-1 hover:border-blue-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:border-blue-500"
+          type="date" v-model="datePicker"/>
       <button
           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
       >Add weight
@@ -50,22 +53,13 @@
                     </th>
                   </tr>
                   </thead>
-                  <tbody>
-                  <tr v-for="(weight, index) in weights"
-                      class="bg-white border-b transition duration-300 ease-in-out hover:bg-blue-200">
-                    <td class="table-body">
-                      {{ index + 1 }}
-                    </td>
-                    <td class="table-body">
-                      {{ weight.weight }} kg
-                    </td>
-                    <td class="table-body">
-                      M&W
-                    </td>
-                    <td class="table-body">
-                      {{ new Date(weight.date).toLocaleDateString() }}
-                    </td>
-                  </tr>
+                  <tbody v-for="(weight, index) in weights">
+                  <WeightHistory
+                      :index='index+1'
+                      :weight="weight.weight"
+                      gender="M&W"
+                      :date="weight.date"
+                  />
                   </tbody>
                 </table>
               </div>
@@ -80,13 +74,15 @@
 <script setup>
 import {ref, shallowRef, computed, watch, nextTick} from 'vue'
 import Chart from 'chart.js/auto'
+import WeightHistory from "@/components/WeightHistory";
 
 const weights = ref([]);
 const weightInput = ref(0);
+const datePicker = ref(null);
 const weightChartEl = ref(null);
 const weightChart = shallowRef(null);
 const currentWeight = computed(() => {
-  return weights.value.sort((a, b) => b.date - a.date)[0] || {weight: 0}
+  return weights.value.sort((a, b) => new Date(b.date) - new Date(a.date))[0] || {weight: 0}
 })
 
 const addWeight = () => {
@@ -95,36 +91,48 @@ const addWeight = () => {
   }
   weights.value.push({
     weight: weightInput.value,
-    date: new Date().getTime()
+    date: datePicker.value,
   })
 }
+
+const sortDate = (a, b) => {
+  return new Date(a.date) - new Date(b.date)
+}
+
+const mapWeightDate = (weight) => {
+  return weight.date
+}
+
+const mapWeight = (weight) => {
+  return weight.weight
+}
+
 watch(weights, (newWeights) => {
-  const ws = [...newWeights]
+  const weight = [...newWeights]
   if (weightChart.value) {
-    weightChart.value.data.labels = ws
-        .sort((a, b) => a.date - b.date)
-        .map(weight => new Date(weight.date).toLocaleDateString())
-        .slice(-7)
-    weightChart.value.data.datasets[0].data = ws
-        .sort((a, b) => a.date - b.date)
-        .map(weight => weight.weight)
-        .slice(-7)
+    weightChart.value.data.labels = weight
+        .sort(sortDate)
+        .map(mapWeightDate)
+    weightChart.value.data.datasets[0].data = weight
+        .sort(sortDate)
+        .map(mapWeight)
     weightChart.value.update()
     return
   }
+
   nextTick(() => {
     weightChart.value = new Chart(weightChartEl.value.getContext('2d'), {
       type: 'line',
       data: {
-        labels: ws
-            .sort((a, b) => a.date - b.date)
-            .map(weight => new Date(weight.date).toLocaleDateString()),
+        labels: weight
+            .sort(sortDate)
+            .map(mapWeightDate),
         datasets: [
           {
             label: 'WEIGHT',
-            data: ws
-                .sort((a, b) => a.date - b.date)
-                .map(weight => weight.weight),
+            data: weight
+                .sort(sortDate)
+                .map(mapWeight),
             backgroundColor: 'rgba(59, 130, 246, 0.2)',
             borderColor: 'rgba(0, 97, 255, 1)',
             borderWidth: 1,
@@ -138,6 +146,7 @@ watch(weights, (newWeights) => {
       }
     })
   })
+
 }, {deep: true})
 </script>
 <style>
